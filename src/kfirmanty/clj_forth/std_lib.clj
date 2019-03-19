@@ -43,8 +43,8 @@
     (push-stack env v)))
 
 (defn swap [env]
-  (let [[f s] (pop-stack env 2)]
-    (-> env
+  (let [[[f s] nenv] (pop-stack env 2)]
+    (-> nenv
         (push-stack f)
         (push-stack s))))
 
