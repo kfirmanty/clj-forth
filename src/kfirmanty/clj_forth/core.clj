@@ -1,6 +1,9 @@
 (ns kfirmanty.clj-forth.core
-  (:require [kfirmanty.clj-forth.std-lib :as std-lib])
+  (:require [kfirmanty.clj-forth.std-lib :as std-lib]
+            [kfirmanty.clj-forth.parser :as parser])
   (:gen-class))
+
+;;TODO: add dumping env to file, so you can distribute programs as VM images
 
 (defn get-fn [env f]
   (get-in env [:fns f]))
@@ -12,25 +15,28 @@
     (execute-loop env f)
     (f env)))
 
-(defn number-str? [v]
-  (re-matches #"\d+\.?\d?" v))
-
-(defn add-fn [env command]
+(defn add-fn [env [command value :as tagged]]
   (if (:compile-fn env)
-    (update-in env [:fns (:compile-fn env)] conj command)
+    (update-in env [:fns (:compile-fn env)] conj tagged)
     (-> env
-        (assoc :compile-fn command)
-        (assoc-in [:fns command] []))))
+        (assoc :compile-fn value)
+        (assoc-in [:fns value] []))))
 
-(defn execute [env command]
+(defn call-command [env]
+  (let [[f nenv] (std-lib/pop-stack env)]
+    (f nenv)))
+
+(defn execute [env [command value]]
   (cond
-    (= command ";") (assoc env :compile-mode? false
+    (= command :COMPILE-END) (assoc env :compile-mode? false
                            :compile-fn nil)
-    (:compile-mode? env) (add-fn env command)
-    (= command ":") (assoc env :compile-mode? true)
-    (number-str? command) (std-lib/push-stack env (Double/parseDouble command))
-    (get-fn env command) (call-fn env (get-fn env command))
-    :else (println "unknown command: " command "\nin env:\n" env)))
+    (:compile-mode? env) (add-fn env [command value])
+    (= command :COMPILE-START) (assoc env :compile-mode? true)
+    (= command :CALL) (call-command env)
+    (#{:DATA-STRUCTURE :NUM :QUOTED-CLOJURE-FN} command) (std-lib/push-stack env value)
+    (= command :CLOJURE-FN) (call-fn env value)
+    (get-fn env value) (call-fn env (get-fn env value))
+    :else (println "unknown command: " command " with value: " value "\nin env:\n" env)))
 
 (defn execute-loop [env commands]
   (loop [env env command (first commands) commands (rest commands)]
@@ -42,7 +48,7 @@
   ([input]
    (consume std-lib/env input))
   ([env input]
-   (let [commands (clojure.string/split input #"\s+")]
+   (let [commands (parser/parse input)]
      (execute-loop env commands))))
 
 (defn -main [& args]
