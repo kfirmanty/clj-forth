@@ -3,12 +3,14 @@
             [kfirmanty.clj-forth.std-lib :as std-lib]))
 
 (def parser
-  (insta/parser "<S> = (((COMPILE-END | COMPILE-START | CALL | DATA-STRUCTURE | CLOJURE-FN | QUOTED-CLOJURE-FN | NUM) / FN-NAME) <ws>)+
+  (insta/parser "<S> = (TERM <ws>)+
+<TERM> = ((COMPILE-END | COMPILE-START | CALL | DATA-STRUCTURE | CLOJURE-FN | QUOTED-CLOJURE-FN | NUM | IF) / FN-NAME)
+IF = <'IF '> TERM (<' ELSE '> TERM)? <' THEN'>
 COMPILE-END = ';'
 COMPILE-START = ':'
 CALL = 'CALL'
 DATA-STRUCTURE = #'\\{.*\\}' | #'\\[.*\\]'
-FN-NAME = #'[A-Za-z+-/*]+'
+FN-NAME = #'[A-Za-z+-/*<>=]+'
 QUOTED-CLOJURE-FN = '\\'' CLOJURE-FN
 CLOJURE-FN = (#'[A-Za-z0-9-]+' '.'?)+ '/' #'[A-Za-z0-9-]+'
 NUM = #'\\d+\\.?\\d*'

@@ -5,7 +5,8 @@
 
 (defn pop-stack
   ([env]
-   (pop-stack env 1))
+   (let [[[v] env] (pop-stack env 1)]
+     [v env]))
   ([env n]
    [(take n (:stack env)) (update env :stack #(drop n %))]))
 
@@ -38,8 +39,29 @@
 (defn div [v1 v2]
   (/ v1 v2))
 
+(defn eq [v1 v2]
+  (if (= v1 v2)
+    -1
+    0))
+
+(defn less [v1 v2]
+  (if (< v2 v1)
+    -1
+    0))
+
+(defn greater [v1 v2]
+  (if (> v2 v1)
+    -1
+    0))
+
+(defn truthy? [v]
+  (not= v 0))
+
+(defn falsey? [v]
+  (= v 0))
+
 (defn dup [env]
-  (let [v (peek (:stack env))]
+  (let [v (first (:stack env))]
     (push-stack env v)))
 
 (defn swap [env]
@@ -48,12 +70,20 @@
         (push-stack f)
         (push-stack s))))
 
+(defn stack-print [env]
+  (-> env :stack first print)
+  env)
+
 (def env {:stack '()
           :fns {"+" (wrap-external #'add)
                 "-" (wrap-external #'sub)
                 "/" (wrap-external #'div)
                 "*" (wrap-external #'mult)
+                "<" (wrap-external #'less)
+                ">" (wrap-external #'greater)
+                "=" (wrap-external #'eq)
                 "DUP" dup
-                "SWAP" swap}
+                "SWAP" swap
+                "PRINT" stack-print}
           :compile-mode? false
           :compile-fn nil})

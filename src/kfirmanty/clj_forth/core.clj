@@ -26,15 +26,22 @@
   (let [[f nenv] (std-lib/pop-stack env)]
     (f nenv)))
 
-(defn execute [env [command value]]
+(defn execute-if [env [if-true if-false]]
+  (let [[v env] (std-lib/pop-stack env)]
+    (cond (std-lib/truthy? v) (execute-loop env [if-true])
+          if-false (execute-loop env [if-false])
+          :else env)))
+
+(defn execute [env [command value :as input]]
   (cond
     (= command :COMPILE-END) (assoc env :compile-mode? false
-                           :compile-fn nil)
+                                    :compile-fn nil)
     (:compile-mode? env) (add-fn env [command value])
     (= command :COMPILE-START) (assoc env :compile-mode? true)
     (= command :CALL) (call-command env)
     (#{:DATA-STRUCTURE :NUM :QUOTED-CLOJURE-FN} command) (std-lib/push-stack env value)
     (= command :CLOJURE-FN) (call-fn env value)
+    (= command :IF) (execute-if env (rest input))
     (get-fn env value) (call-fn env (get-fn env value))
     :else (println "unknown command: " command " with value: " value "\nin env:\n" env)))
 
