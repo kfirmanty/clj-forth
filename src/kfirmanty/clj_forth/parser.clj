@@ -4,7 +4,7 @@
 
 (def parser
   (insta/parser "<S> = (TERM <ws>)+
-<TERM> = ((COMPILE-END | COMPILE-START | CALL | DATA-STRUCTURE | CLOJURE-FN | QUOTED-CLOJURE-FN | NUM | IF) / FN-NAME)
+<TERM> = ((COMPILE-END | COMPILE-START | CALL | DATA-STRUCTURE | CLOJURE-FN | QUOTED-CLOJURE-FN | NUM | IF | STRING) / FN-NAME)
 IF = <'IF '> TERM (<' ELSE '> TERM)? <' THEN'>
 COMPILE-END = ';'
 COMPILE-START = ':'
@@ -13,6 +13,7 @@ DATA-STRUCTURE = #'\\{.*\\}' | #'\\[.*\\]'
 FN-NAME = #'[A-Za-z+-/*<>=]+'
 QUOTED-CLOJURE-FN = '\\'' CLOJURE-FN
 CLOJURE-FN = (#'[A-Za-z0-9-]+' '.'?)+ '/' #'[A-Za-z0-9-]+'
+STRING =  <'\\''> #'[^\\']+' <'\\''>
 NUM = #'\\d+\\.?\\d*'
 ws = #'\\s*'"))
 

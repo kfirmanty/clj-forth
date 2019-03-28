@@ -39,7 +39,7 @@
     (:compile-mode? env) (add-fn env [command value])
     (= command :COMPILE-START) (assoc env :compile-mode? true)
     (= command :CALL) (call-command env)
-    (#{:DATA-STRUCTURE :NUM :QUOTED-CLOJURE-FN} command) (std-lib/push-stack env value)
+    (#{:DATA-STRUCTURE :NUM :QUOTED-CLOJURE-FN :STRING} command) (std-lib/push-stack env value)
     (= command :CLOJURE-FN) (call-fn env value)
     (= command :IF) (execute-if env (rest input))
     (get-fn env value) (call-fn env (get-fn env value))

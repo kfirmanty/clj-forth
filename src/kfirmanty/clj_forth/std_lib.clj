@@ -70,8 +70,12 @@
         (push-stack f)
         (push-stack s))))
 
-(defn stack-print [env]
+(defn print-stack-top [env]
   (-> env :stack first print)
+  env)
+
+(defn print-stack [env]
+  (-> env :stack println)
   env)
 
 (def env {:stack '()
@@ -84,6 +88,7 @@
                 "=" (wrap-external #'eq)
                 "DUP" dup
                 "SWAP" swap
-                "PRINT" stack-print}
+                "PRINT" print-stack-top
+                "PRINT-STACK" print-stack}
           :compile-mode? false
           :compile-fn nil})
